@@ -28,3 +28,20 @@ def test_flag_path_project_scope(tmp_path):
     proj = tmp_path / "proj"
     p = flag_path("project", home=tmp_path, project_dir=proj)
     assert p == proj / ".claude" / "telegram-mode"
+
+
+def test_load_config_blank_chat_id_is_none(monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "tok")
+    monkeypatch.setenv("TELEGRAM_ALLOWED_CHAT_ID", "")
+    cfg = load_config(env_file=None)
+    assert cfg.allowed_chat_id is None
+
+
+def test_is_mode_on_and_set_mode_roundtrip(tmp_path):
+    from claude_telegram.config import is_mode_on, set_mode
+    p = tmp_path / "sub" / "telegram-mode"
+    assert is_mode_on(p) is False  # missing file
+    set_mode(p, True)
+    assert is_mode_on(p) is True
+    set_mode(p, False)
+    assert is_mode_on(p) is False

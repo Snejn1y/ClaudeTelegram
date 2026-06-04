@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -25,6 +26,8 @@ async def _lifespan(_server: FastMCP):
         yield
     finally:
         task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
         await _bot.session.close()
 
 

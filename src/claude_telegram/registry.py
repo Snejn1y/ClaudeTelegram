@@ -14,7 +14,7 @@ class Registry:
 
     def new_request(self) -> tuple[str, asyncio.Future]:
         rid = uuid.uuid4().hex[:6]
-        fut: asyncio.Future = asyncio.get_event_loop().create_future()
+        fut: asyncio.Future = asyncio.get_running_loop().create_future()
         self._futures[rid] = fut
         return rid, fut
 

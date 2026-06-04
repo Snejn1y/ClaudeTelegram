@@ -25,6 +25,19 @@ class Question:
     options: list[QuestionOption]
 
 
+def decode_answer(raw: str, labels: list[str]) -> str:
+    """Map a registry-resolved value back to the answer text.
+    'o:<index>' -> the option label (bounds-checked); 't:<text>' -> the free text."""
+    if raw.startswith("o:"):
+        idx = int(raw[2:])
+        if 0 <= idx < len(labels):
+            return labels[idx]
+        return raw
+    if raw.startswith("t:"):
+        return raw[2:]
+    return raw
+
+
 def _render(question: Question) -> str:
     lines = [f"<b>{html.escape(question.header)}</b>", html.escape(question.question), ""]
     for i, opt in enumerate(question.options):
@@ -45,6 +58,9 @@ def build_dispatcher(config: Config, registry: Registry) -> Dispatcher:
 
     @dp.callback_query(F.data.startswith("q:"))
     async def on_callback(cb: CallbackQuery) -> None:
+        if cb.message is None:
+            await cb.answer()
+            return
         if not _allowed(cb.message.chat.id):
             await cb.answer("Not authorized")
             return
@@ -57,6 +73,7 @@ def build_dispatcher(config: Config, registry: Registry) -> Dispatcher:
             await cb.message.answer("Надішли відповідь текстом:")
             await cb.answer()
             return
+        registry.pop_awaiting_text(cb.message.chat.id)
         resolved = registry.resolve(parsed.request_id, f"o:{parsed.index}")
         await cb.answer("✓" if resolved else "")
 
@@ -74,6 +91,11 @@ def build_dispatcher(config: Config, registry: Registry) -> Dispatcher:
 
 async def ask(bot: Bot, config: Config, registry: Registry, question: Question) -> str:
     """Send one question, wait for the answer, return the chosen label or free text."""
+    if config.allowed_chat_id is None:
+        raise RuntimeError(
+            "TELEGRAM_ALLOWED_CHAT_ID is not set. Send /start to your bot and put your "
+            "chat id in ~/.claude-telegram/.env, then restart the session."
+        )
     rid, fut = registry.new_request()
     labels = [o.label for o in question.options]
     await bot.send_message(
@@ -83,8 +105,4 @@ async def ask(bot: Bot, config: Config, registry: Registry, question: Question) 
         parse_mode="HTML",
     )
     raw = await registry.wait(rid, fut, timeout=config.answer_timeout)
-    if raw.startswith("o:"):
-        return labels[int(raw[2:])]
-    if raw.startswith("t:"):
-        return raw[2:]
-    return raw
+    return decode_answer(raw, labels)
