@@ -24,7 +24,9 @@ def main() -> None:
         "CLAUDE_TELEGRAM_FLAG"
     ) else (Path.home() / ".claude-telegram" / "telegram-mode")
     suffix = INDICATOR if is_mode_on(flag) else ""
-    sys.stdout.write(base_output + suffix + "\n")
+    # Write UTF-8 bytes directly so the 📱 emoji survives a non-UTF-8 console
+    # codepage (e.g. cp1251 on Windows), which would otherwise raise UnicodeEncodeError.
+    sys.stdout.buffer.write((base_output + suffix + "\n").encode("utf-8"))
 
 
 if __name__ == "__main__":
