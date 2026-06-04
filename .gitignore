@@ -1,0 +1,12 @@
+# secrets & local config
+.env
+# specs/design docs are local-only
+docs/
+# python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+build/
+dist/

@@ -1,0 +1,23 @@
+[project]
+name = "claude-telegram"
+version = "0.1.0"
+description = "Answer Claude Code's choices from a Telegram bot"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.2.0",
+    "aiogram>=3.7,<4",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+claude-telegram = "claude_telegram.cli:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
