@@ -4,11 +4,18 @@ import argparse
 import shutil
 import subprocess
 import sys
+from importlib.resources import files
 from pathlib import Path
 
 from .config import DEFAULT_ENV_FILE, flag_path, set_mode
 
-COMMAND_TEMPLATE = Path(__file__).resolve().parent.parent.parent / "commands" / "telegram.md"
+
+def _command_template_text() -> str:
+    return (
+        files("claude_telegram")
+        .joinpath("commands", "telegram.md")
+        .read_text(encoding="utf-8")
+    )
 
 
 def _cmd_serve(_args: argparse.Namespace) -> int:
@@ -56,7 +63,7 @@ def _cmd_setup(args: argparse.Namespace) -> int:
         else Path.cwd() / ".claude" / "commands"
     )
     cmd_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy(COMMAND_TEMPLATE, cmd_dir / "telegram.md")
+    (cmd_dir / "telegram.md").write_text(_command_template_text(), encoding="utf-8")
     print(f"Installed /telegram command to {cmd_dir}")
 
     print(

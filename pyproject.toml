@@ -18,6 +18,9 @@ claude-telegram = "claude_telegram.cli:main"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/claude_telegram"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
